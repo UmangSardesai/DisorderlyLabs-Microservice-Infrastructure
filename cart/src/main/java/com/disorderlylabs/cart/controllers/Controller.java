@@ -34,6 +34,14 @@ public class Controller {
   public String index() {
       return "Greetings from Cart App!";
   }
+  
+  
+  @RequestMapping("/c")
+  public String test() {
+
+	System.out.println("[TEST] Cart");   
+      return "";
+  }
 
   @RequestMapping(value = "/addToCart", method = RequestMethod.PUT)
   public String addToCart(@RequestParam(value="ItemID", required=true) int ItemID, @RequestParam(value="quantity", required=true) int quantity, @RequestParam(value="total_price", required=true) double total_price)

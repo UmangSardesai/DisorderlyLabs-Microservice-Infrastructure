@@ -17,8 +17,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.apache.http.util.EntityUtils; 
+import org.apache.http.util.EntityUtils;
+ 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient; 	
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,6 +38,26 @@ public class Controller {
   public String index() {
       return "Greetings from Inventory App!";
   }
+
+  @RequestMapping("/b")
+  public String test() {
+	System.out.println("[TEST] inventory");   
+	try{
+		String cart =  "http://" + System.getenv("cart_ip") + "/c";
+        System.out.println("cart_URL: " + cart);
+       
+        	HttpClient client = new DefaultHttpClient();
+		HttpGet request = new HttpGet(cart);
+	
+		HttpResponse response = client.execute(request);	
+	}catch(Exception e) {
+		return e.toString();
+	}
+
+      return "";
+  }
+
+
 
   @RequestMapping(value = "/checkAvailibility", method = RequestMethod.GET)
   public String checkAvailibility(@RequestParam(value="name", required=true) String name) 
