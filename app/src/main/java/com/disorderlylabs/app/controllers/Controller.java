@@ -40,8 +40,27 @@ public class Controller {
 
   @RequestMapping("/")
   public String index() {
+      System.out.println("Hello!");   	  
       return "Greetings from App Microservice!";
   }
+
+
+  @RequestMapping("/a")
+  public String test() {
+	System.out.println("[TEST] App");   
+	try{
+		String inventory = "http://" + System.getenv("inventory_ip") + "/b";
+        System.out.println("Inventory_URL: " + inventory);
+        	HttpClient client = new DefaultHttpClient();
+		HttpGet request = new HttpGet(inventory);
+	
+		HttpResponse response = client.execute(request);	
+	}catch(Exception e) {
+		return e.toString();
+	}	
+	return "";
+  }
+
 
   @RequestMapping("/checkEnv")
   public String checkEnv() {
@@ -78,6 +97,7 @@ public class Controller {
   {
     try
     {
+      System.out.println("HERE");	    
       String url = "http://" + System.getenv("inventory_ip") + "/takeFromInventory";
       HttpClient client = new DefaultHttpClient();
       HttpPut put = new HttpPut(url);

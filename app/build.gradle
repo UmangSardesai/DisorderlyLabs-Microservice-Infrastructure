@@ -36,7 +36,8 @@ docker {
 }
 
 repositories {
-  mavenCentral()
+	mavenLocal()
+  	mavenCentral()
 }
 
 dependencies {
@@ -46,6 +47,10 @@ dependencies {
   compile("com.h2database:h2")
   compile("org.apache.httpcomponents:httpclient:4.3.4")
   compile("com.google.code.gson:gson:2.2+")
+  compile("io.opentracing.contrib:opentracing-spring-web-autoconfigure:0.0.9")
+  compile("io.opentracing.brave:brave-opentracing:0.21.1")
+  compile("io.zipkin.reporter:zipkin-sender-okhttp3:0.10.0")
+  compile("io.opentracing.contrib:opentracing-okhttp3:0.0.4")
   testCompile("junit:junit")
   testCompile('org.springframework.boot:spring-boot-starter-test')
 }
