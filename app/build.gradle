@@ -46,6 +46,7 @@ dependencies {
   compile("com.h2database:h2")
   compile("org.apache.httpcomponents:httpclient:4.3.4")
   compile("com.google.code.gson:gson:2.2+")
+  compile("com.netflix.hystrix:hystrix-core:1.5.12")
   testCompile("junit:junit")
   testCompile('org.springframework.boot:spring-boot-starter-test')
 }
