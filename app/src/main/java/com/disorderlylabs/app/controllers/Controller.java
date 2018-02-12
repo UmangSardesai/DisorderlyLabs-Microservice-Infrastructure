@@ -36,16 +36,11 @@ public class Controller {
 
   @Autowired
   JdbcTemplate jdbcTemplate;
-  private static final String inventory_URL = "http://localhost:7002";
+  private static final String inventory_URL = "http://inventory";
 
   @RequestMapping("/")
   public String index() {
       return "Greetings from App Microservice!";
-  }
-
-  @RequestMapping("/checkEnv")
-  public String checkEnv() {
-      return System.getenv("inventory_ip") + "";
   }
 
   //******--------For this particular request 'App' is acting like a forwarding node to 'Inventory'--------******.
@@ -54,7 +49,7 @@ public class Controller {
   {
     try
     {
-      String url = "http://" + System.getenv("inventory_ip") + "/takeFromInventory";
+      String url = inventory_URL + "/takeFromInventory";
       HttpClient client = new DefaultHttpClient();
       HttpPut put = new HttpPut(url);
 
