@@ -1,6 +1,6 @@
 package com.disorderlylabs.app.controllers;
 
-
+import com.disorderlylabs.app.faultInjection.Fault;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,6 +38,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.OkHttpClient;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 public class Controller {
 
@@ -57,24 +59,23 @@ public class Controller {
 
 
   @RequestMapping("/a")
-  public String test() {
+  public String test(HttpServletRequest request,
+                     @RequestParam(value="InjectFault", required=false) String inject) {
     System.out.println("[TEST] App");
 
     OkHttpClient client = new OkHttpClient();
-    Span span = tracing.tracer().newTrace().kind(Span.Kind.CLIENT);
-    ExtraFieldPropagation.set(span.context(), "InjectFault", "Hello");
-
+    Span span = Fault.spanFromContext(tracing, request);
+    ExtraFieldPropagation.set(span.context(), "InjectFault", "/b=DELAY:5000");
 
 	try{
 		String inventory = "http://" + System.getenv("inventory_ip") + "/b";
         System.out.println("Inventory_URL: " + inventory);
 
-        Request.Builder request = new Request.Builder().url(inventory);
+        Request.Builder req = new Request.Builder().url(inventory);
 
-        tracing.propagation().injector(Request.Builder::addHeader)
-                .inject(span.context(), request);
+        Fault.injectContext(tracing, req, span);
 
-        Response response = client.newCall(request.build()).execute();
+        Response response = client.newCall(req.build()).execute();
 	}catch(Exception e) {
 		return e.toString();
 	}	
