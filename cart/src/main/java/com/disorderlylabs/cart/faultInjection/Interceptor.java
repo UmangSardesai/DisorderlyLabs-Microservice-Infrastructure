@@ -1,67 +1,56 @@
 package com.disorderlylabs.cart.faultInjection;
 
+
 import java.util.Map;
 import java.util.Enumeration;
 import java.util.HashMap;
 
-import io.opentracing.Span;
-import io.opentracing.SpanContext;
-import io.opentracing.Tracer;
-import io.opentracing.propagation.TextMapExtractAdapter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import static io.opentracing.propagation.Format.Builtin.HTTP_HEADERS;
 
 public class Interceptor extends HandlerInterceptorAdapter {
-    private Tracer tracer;
 
-    @Autowired
-    public Interceptor(Tracer tracer) {
-        this.tracer = tracer;
-    }
 
-	@Override
-	public boolean preHandle(HttpServletRequest request,
+    @Override
+    public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
                              Object handler) throws Exception {
-        Map<String, String> httpHeaders = getHeaders(request);
-
-        TextMapExtractAdapter carrier = new TextMapExtractAdapter(httpHeaders);
-        SpanContext parentSpan = tracer.extract(HTTP_HEADERS, carrier);
-
-        Span child = tracer.buildSpan("fault injection")
-                           .asChildOf(tracer.activeSpan())
-                           .startManual();
 
 
         /*Fault injection flag will be in the form:
-        <string,string> => <inject-[servicename], fault1;fault2;fault3
+        <string,string> => <InjectFault, serviceName=fault1;fault2;fault3
 
         where fault is in the form:
         faulttype:param
 
-        Example: <inject-service1, DELAY:1000;DROP_PACKET:service3>
+
+        Example: <InjectFault, service1=DELAY:1000;DROP_PACKET:service3>
+
+
         */
-        String headerKey = "inject-service1";
-
         try {
-            if (parentSpan != null) {
+            //if fault injection is set
+            String faultKey = request.getHeader("InjectFault");
+            if (faultKey != null) {
+                String target[] = faultKey.split("=");
 
-                //if our service is targeted for fault injection
-                if(httpHeaders.containsKey(headerKey)) {
-                    String headerVal = httpHeaders.get(headerKey);
-                    String faults[] = headerVal.split(Fault.SEQ_DELIM);
+                //if current service is targeted
+                String currentService = request.getRequestURI();
+                if(target[0].equals(currentService)) {
+                    String faultString = target[1];
 
-                    for(String a : faults) {
+                    String faults[] = faultString.split(Fault.SEQ_DELIM);
+
+                    for (String a : faults) {
                         String f[] = a.split(Fault.FIELD_DELIM);
 
                         Fault.FAULT_TYPES fVal = Fault.FAULT_TYPES.valueOf(f[0]);
-                        switch(fVal) {
+                        switch (fVal) {
                             case DELAY:
                                 try {
                                     int duration = Integer.parseInt(f[1]);
@@ -80,13 +69,11 @@ public class Interceptor extends HandlerInterceptorAdapter {
                 }
             }
         } catch (Exception exception) {
-            System.out.println("we had an exception");
-        } finally {
-            child.finish();
+            System.out.println("Exception: " + exception.toString());
         }
 
-		return true;
-	}
+        return true;
+    }
 
 
     @Override
@@ -98,19 +85,19 @@ public class Interceptor extends HandlerInterceptorAdapter {
     }
 
     @Override
-    public void afterCompletion (HttpServletRequest request,
-                                 HttpServletResponse response,
-                                 Object handler,
-                                 Exception ex) throws Exception {
+    public void afterCompletion(HttpServletRequest request,
+                                HttpServletResponse response,
+                                Object handler,
+                                Exception ex) throws Exception {
 
         //nothing for now
     }
 
 
     @Override
-    public void afterConcurrentHandlingStarted (HttpServletRequest request,
-                                                HttpServletResponse response,
-                                                Object handler) throws Exception {
+    public void afterConcurrentHandlingStarted(HttpServletRequest request,
+                                               HttpServletResponse response,
+                                               Object handler) throws Exception {
 
         //nothing for now
     }

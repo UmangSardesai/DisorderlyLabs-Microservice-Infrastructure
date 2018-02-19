@@ -38,11 +38,13 @@ public class Fault {
     public static Map<String, String> getHeaders(HttpServletRequest request) {
         Map<String, String> httpHeaders = new HashMap<>();
         Enumeration headerNames = request.getHeaderNames();
-        System.out.println("[PRINTING HEADERS]");
+
         while (headerNames.hasMoreElements()) {
             String key = (String) headerNames.nextElement();
             String value = request.getHeader(key);
             httpHeaders.put(key, value);
+//            System.out.println("KEY: " + key);
+//            System.out.println("VALUE: " + value);
         }
         return httpHeaders;
     }

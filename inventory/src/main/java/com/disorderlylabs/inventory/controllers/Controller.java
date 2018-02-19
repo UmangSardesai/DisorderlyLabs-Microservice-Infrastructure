@@ -2,13 +2,7 @@ package com.disorderlylabs.inventory.controllers;
 
 import com.disorderlylabs.inventory.faultInjection.Fault;
 
-import brave.Tracing;
-import brave.propagation.B3Propagation;
-import brave.propagation.ExtraFieldPropagation;
-import brave.propagation.Propagation;
-import brave.propagation.TraceContext;
-import okhttp3.Request;
-import okhttp3.Response;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,9 +32,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-
-import brave.Tracer;
+//tracing
 import brave.Span;
+import brave.Tracing;
+
+import okhttp3.Request;
+import okhttp3.Response;
 import okhttp3.OkHttpClient;
 
 import javax.servlet.http.HttpServletRequest;
