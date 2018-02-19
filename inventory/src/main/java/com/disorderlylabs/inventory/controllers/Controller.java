@@ -1,6 +1,16 @@
 package com.disorderlylabs.inventory.controllers;
 
+import com.disorderlylabs.inventory.faultInjection.Fault;
+
+import brave.Tracing;
+import brave.propagation.B3Propagation;
+import brave.propagation.ExtraFieldPropagation;
+import brave.propagation.Propagation;
+import brave.propagation.TraceContext;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -9,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.jdbc.core.JdbcTemplate;
 import com.disorderlylabs.inventory.mappers.CatalogMapper;
 import com.disorderlylabs.inventory.repositories.Catalog;
-import java.util.ArrayList;
-import java.util.Arrays;
+
+import java.util.*;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -28,28 +38,48 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+
+import brave.Tracer;
+import brave.Span;
+import okhttp3.OkHttpClient;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brave.propagation.Propagation.KeyFactory.STRING;
+
 @RestController
 public class Controller {
 
   @Autowired
   JdbcTemplate jdbcTemplate;
 
+
+  @Qualifier("zipkinTracer")
+  @Autowired
+  private Tracing tracing;
+
+
   @RequestMapping("/")
   public String index() {
       return "Greetings from Inventory App!";
   }
 
+
   @RequestMapping("/b")
-  public String test() {
-	System.out.println("[TEST] inventory");   
+  public String test(HttpServletRequest request) {
+	System.out.println("[TEST] inventory");
+
+    OkHttpClient client = new OkHttpClient();
+    Span span = Fault.spanFromContext(tracing, request);
+
 	try{
 		String cart =  "http://" + System.getenv("cart_ip") + "/c";
         System.out.println("cart_URL: " + cart);
-       
-        	HttpClient client = new DefaultHttpClient();
-		HttpGet request = new HttpGet(cart);
-	
-		HttpResponse response = client.execute(request);	
+
+        Request.Builder req = new Request.Builder().url(cart);
+        Fault.injectContext(tracing, req, span);
+
+        Response response = client.newCall(req.build()).execute();
 	}catch(Exception e) {
 		return e.toString();
 	}
