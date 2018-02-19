@@ -1,29 +1,26 @@
 package com.disorderlylabs.app.controllers;
 
+
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import org.springframework.jdbc.core.JdbcTemplate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
+import java.util.*;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import org.apache.http.util.EntityUtils; 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
@@ -31,12 +28,26 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+
+//tracing
+import brave.Span;
+import brave.Tracing;
+import brave.propagation.ExtraFieldPropagation;
+
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.OkHttpClient;
+
 @RestController
 public class Controller {
 
   @Autowired
   JdbcTemplate jdbcTemplate;
   private static final String inventory_URL = "http://localhost:7002";
+
+  @Qualifier("zipkinTracer")
+  @Autowired
+  private Tracing tracing;
 
   @RequestMapping("/")
   public String index() {
@@ -47,14 +58,23 @@ public class Controller {
 
   @RequestMapping("/a")
   public String test() {
-	System.out.println("[TEST] App");   
+    System.out.println("[TEST] App");
+
+    OkHttpClient client = new OkHttpClient();
+    Span span = tracing.tracer().newTrace().kind(Span.Kind.CLIENT);
+    ExtraFieldPropagation.set(span.context(), "InjectFault", "Hello");
+
+
 	try{
 		String inventory = "http://" + System.getenv("inventory_ip") + "/b";
         System.out.println("Inventory_URL: " + inventory);
-        	HttpClient client = new DefaultHttpClient();
-		HttpGet request = new HttpGet(inventory);
-	
-		HttpResponse response = client.execute(request);	
+
+        Request.Builder request = new Request.Builder().url(inventory);
+
+        tracing.propagation().injector(Request.Builder::addHeader)
+                .inject(span.context(), request);
+
+        Response response = client.newCall(request.build()).execute();
 	}catch(Exception e) {
 		return e.toString();
 	}	

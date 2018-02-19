@@ -1,6 +1,9 @@
 package com.disorderlylabs.cart.controllers;
 
+import com.disorderlylabs.cart.faultInjection.Fault;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -9,20 +12,20 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.jdbc.core.JdbcTemplate;
 import com.disorderlylabs.cart.mappers.CartMapper;
 import com.disorderlylabs.cart.repositories.Cart;
-import java.util.ArrayList;
-import java.util.Arrays;
+
+import java.util.*;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.apache.http.util.EntityUtils; 
 import org.apache.http.HttpResponse;
 
-import java.io.BufferedReader;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.InputStreamReader;
+
+//tracing
+import brave.Tracing;
 
 @RestController
 public class Controller {
@@ -30,16 +33,23 @@ public class Controller {
   @Autowired
   JdbcTemplate jdbcTemplate;
 
+  @Qualifier("zipkinTracer")
+  @Autowired
+  private Tracing tracing;
+
   @RequestMapping("/")
   public String index() {
       return "Greetings from Cart App!";
   }
-  
+
   
   @RequestMapping("/c")
-  public String test() {
+  public String test(HttpServletRequest request) {
 
-	System.out.println("[TEST] Cart");   
+	System.out.println("[TEST] Cart");
+
+    Fault.getHeaders(request);
+
       return "";
   }
 
