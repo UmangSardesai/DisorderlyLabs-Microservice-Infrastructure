@@ -43,6 +43,7 @@ dependencies {
   compile('org.springframework.boot:spring-boot-starter')
 	compile("org.springframework.boot:spring-boot-starter-web")
 	compile("org.springframework:spring-jdbc")
+  compile("org.springframework:spring-web")  
 	compile("com.h2database:h2")
 	compile("org.apache.httpcomponents:httpclient:4.3.4")
 	compile("com.google.code.gson:gson:2.2+")
