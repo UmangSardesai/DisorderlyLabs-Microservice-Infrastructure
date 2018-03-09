@@ -84,7 +84,6 @@ public class Controller {
     try
     {
       String url = "http://" + inventory_URL + "/inventory/takeFromInventory?name="+name+"&quantity="+quantity;
-
       HttpEntity<String> request = new HttpEntity<>("");
       String res = restTemplate.postForObject(url, request, String.class);
 
@@ -163,6 +162,22 @@ public class Controller {
       return "{\"status\":\"failure at app: Could not invoice because of " + e.toString() + "\"}";
     }
   }
+
+  @RequestMapping(value = "/app/undoCart", method = {RequestMethod.PUT, RequestMethod.POST})
+  public String undoCart() 
+  {
+    try
+    {
+      String url = "http://" + cart_URL + "/cart/undoCart";
+      HttpEntity<String> request = new HttpEntity<>("");
+      String res = restTemplate.postForObject(url, request, String.class);
+      return res;
+    }
+    catch(Exception e)
+    {
+      return "{\"status\":\"failure at app: Could not undo cart because of " + e.toString() + "\"}";
+    }
+  }  
 
   String convertToString(HttpResponse response) throws IOException
   {
